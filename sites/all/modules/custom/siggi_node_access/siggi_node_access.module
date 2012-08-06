@@ -1,0 +1,73 @@
+<?php
+
+/**
+ * @file
+ * Checks whether a node is accessible by comparing the path name and the role.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function siggi_node_access_help($path, $arg) {
+  if ($path == 'admin/help#siggi_node_access') {
+    return
+'<h3>' . t('About') . '</h3>' .
+'<p>' .
+   'The Node Access module takes the directory from the node\'s alias pathname.
+   It checks whether this directory is found in the node-to-role table defined
+   in this module. If this is true, it is checked whether the role allows
+   to view the node. Otherwise the access check is forwarded to Drupal.' .
+'</p>';
+  }
+}
+
+/**
+ * Implements hook_node_access().
+ */
+function siggi_node_access_node_access($node, $op, $account) {
+
+  static $dir_to_role = array(
+      'auth' => 'authenticated user',
+      'priv' => 'private',
+  );
+  
+  $access = NULL;
+  
+  //dd("*** siggi_node_access_node_access ***");
+  //dd("op = '$op', node = '$node'");
+  
+  //return NODE_ACCESS_ALLOW;
+  if (is_object($node) && ($op == 'view')) {
+    $url = drupal_lookup_path('alias', 'node/' . $node->nid);
+    
+    //dd("nid = {$node->nid}, url = '$url'");
+    //dd($node);
+    //dd($account->roles);
+    
+    foreach ($dir_to_role as $dir => $role) {
+      $dir_slash = $dir . '/';
+      $dir_len = strlen($dir_slash);
+      if (strncmp($dir_slash, $url, $dir_len) == 0) {
+        if (in_array($role, $account->roles))  {
+          $access = NODE_ACCESS_ALLOW;
+          //dd('access: NODE_ACCESS_ALLOW');
+        } else {
+          $access = NODE_ACCESS_DENY;
+          //dd('access: NODE_ACCESS_DENY');
+        }
+        break;
+      }
+    }
+    if (is_null($access)) {
+      $access = NODE_ACCESS_ALLOW;
+      //dd('access: NODE_ACCESS_ALLOW');
+    }
+  }
+  
+  if (is_null($access)) {
+    $access = NODE_ACCESS_IGNORE;
+    //dd('access: NODE_ACCESS_IGNORE');
+  }
+    
+  return $access;
+}

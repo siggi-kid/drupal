@@ -1,0 +1,5 @@
+name = Siggi Node Access
+description = Own rules for viewing a node.
+package = Siegfried
+core = 7.x
+files[] = siggi_node_access.module
