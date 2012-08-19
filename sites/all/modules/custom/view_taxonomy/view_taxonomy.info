@@ -1,0 +1,6 @@
+name = View with Taxonomy
+description = Checks for string taxonomy arguments and converts them to int. Modifies the title, too.
+core = 7.x
+package = Siegfried
+
+files[] = view_taxonomy.module

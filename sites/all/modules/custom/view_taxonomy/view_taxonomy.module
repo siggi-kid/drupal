@@ -1,0 +1,87 @@
+<?php
+
+/**
+ * @file
+ * Modifies the argument and title of the "photo view" view.
+ */
+
+global $_view_taxonomy_title;
+$_view_taxonomy_title = 'No title';
+
+/**
+ * Implementation of hook_help().
+ */
+function view_taxonomy_help($path, $arg) {
+  if ($path == 'admin/help#view_taxonomy') {
+    return t('
+      <p>
+      This modules allows users to use the taxonomy string value for a view
+      with "contextual filters".
+      </p>
+      <p>
+      For example there is a view using a gallery taxonomy and a name taxonomy.
+      This view may be called by "view/@dog/@caspar". The module changes this
+      call to e.g. "view/3/2". Additionally this module will change the title to
+      "Dog : Caspar".
+      </p>
+      <p>
+      This replacement is only done for arguments starting with "@". This
+      character will be removed and the first character set to upper case.
+      </p>
+    ');
+  }
+}
+
+/**
+ * Implements hook_views_pre_view().
+ */
+function view_taxonomy_views_pre_view(&$view, &$display_id, &$args) {
+  global $_view_taxonomy_title;
+  
+  $found = FALSE;
+  foreach ($args as $arg) {
+    if ($arg[0] == '@') {
+      $found = TRUE;
+    }
+  }
+  if (!$found) {
+    return;
+  }
+
+  $_view_taxonomy_title = '';
+
+  for ($i = 0; $i < count($args); $i++) {
+    $arg = $args[$i];
+    if ($arg[0] != '@') {
+      continue;
+    }
+    $arg = ucfirst(substr($arg, 1));
+    
+    if ($_view_taxonomy_title) {
+      $_view_taxonomy_title .= ' : ';
+    }
+    $_view_taxonomy_title .= $arg;
+    
+    $tag_idx = _view_taxonomy_get_index($arg);
+    if (!$tag_idx) {
+      $_view_taxonomy_title .= '???';
+      return;
+    } else {
+      $view->args[$i] = $tag_idx;
+    }    
+  }
+}
+
+function _view_taxonomy_get_index($name) {
+  $idx = db_query('SELECT tid FROM {taxonomy_term_data} WHERE name = :name',
+          array(':name' => $name))->fetchField();
+  return $idx;
+}
+
+/**
+ * Implements hook_views_pre_render().
+ */
+function view_taxonomy_views_pre_render(&$view) {
+  global $_view_taxonomy_title;
+  $view->build_info['title'] = $_view_taxonomy_title;
+}

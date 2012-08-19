@@ -1,0 +1,100 @@
+<?php
+
+/**
+ * @file
+ * Family module file
+ */
+
+/**
+ * Implements hook_block_info().
+ */
+function family_block_info()
+{
+  $blocks = array();
+  
+  $blocks['family'] = array(
+      'info' => t('Kontaktdaten der Familie.'),
+  );
+  
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function family_block_view($block_name = '')
+{
+  global $base_url;
+  
+  $persons = array(
+    array(
+        'name' => 'Siegfried',
+        'link' => $base_url . '/ueber-mich',
+        'mail' => 'steinsiek-muehldorf@t-online.de',
+    ),
+    array(
+        'name' => 'Carla',
+        'link' => '',
+        'mail' => 'steinsiek-muehldorf@t-online.de',
+    ),
+    array(
+        'name' => 'Caroline',
+        'link' => $base_url . '/../Caroline/Meerschweinchen.html',
+        'mail' => 'cxaxrxo@web.de',
+    ),
+    array(
+        'name' => 'Benedikt',
+        'link' => '',
+        'mail' => 'benedikt.steinsiek@gmx.de',
+    ),
+    array(
+        'name' => 'Moritz',
+        'link' => '',
+        'mail' => 'moritz.steinsiek@web.de',
+    ),
+    array(
+        'name' => 'Annelie',
+        'link' => '',
+        'mail' => 'an-ne-lie@gmx.de',
+    ),
+  );
+
+  $block = array();
+  
+  if ($block_name == 'family') {
+    $mailImage = drupal_get_path('module', 'family') .'/images/letter.png';
+    ob_start();
+?>
+
+<div id="family-block">
+  <table>
+    <?php foreach ($persons as $person) { ?>
+    <tr>
+      <td class="mail">
+        <a href="<?php print($person['mail']); ?>">
+          <img alt="Mail" src="<?php print($mailImage); ?>" />
+        </a>
+      </td>
+      <td class="name">
+        <?php if ($person['link']) { ?>
+          <a href="<?php print($person['link']); ?>" title="Homepage">
+            <?php print($person['name']); ?>
+          </a>
+        <?php } else { ?>
+          <span>
+            <?php print($person['name']); ?>
+          </span>
+        <?php } ?>
+      </td>
+    </tr>
+    <?php } ?>
+  </table>
+</div>
+<?php
+    $html = ob_get_contents();
+    ob_end_clean();
+    $block['content'] = $html;
+  }
+  
+  return $block;
+}

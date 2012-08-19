@@ -1,0 +1,5 @@
+name = Family
+description = Kontaktdaten und Links auf Front Page.
+core = 7.x
+package = Siegfried
+files[] = family.module
