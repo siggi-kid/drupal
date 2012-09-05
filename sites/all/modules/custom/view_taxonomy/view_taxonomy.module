@@ -5,9 +5,6 @@
  * Modifies the argument and title of the "photo view" view.
  */
 
-global $_view_taxonomy_title;
-$_view_taxonomy_title = 'No title';
-
 /**
  * Implementation of hook_help().
  */
@@ -34,10 +31,12 @@ function view_taxonomy_help($path, $arg) {
 
 /**
  * Implements hook_views_pre_view().
+ * 
+ * We modify the title in case we find a taxonomy expression. To do so we
+ * store the new title in a new view variable.
  */
 function view_taxonomy_views_pre_view(&$view, &$display_id, &$args) {
-  global $_view_taxonomy_title;
-  
+
   $found = FALSE;
   foreach ($args as $arg) {
     if ($arg[0] == '@') {
@@ -48,7 +47,7 @@ function view_taxonomy_views_pre_view(&$view, &$display_id, &$args) {
     return;
   }
 
-  $_view_taxonomy_title = '';
+  $title = '';
 
   for ($i = 0; $i < count($args); $i++) {
     $arg = $args[$i];
@@ -57,19 +56,20 @@ function view_taxonomy_views_pre_view(&$view, &$display_id, &$args) {
     }
     $arg = ucfirst(substr($arg, 1));
     
-    if ($_view_taxonomy_title) {
-      $_view_taxonomy_title .= ' : ';
+    if ($title) {
+      $title .= ' : ';
     }
-    $_view_taxonomy_title .= $arg;
+    $title .= $arg;
     
     $tag_idx = _view_taxonomy_get_index($arg);
     if (!$tag_idx) {
-      $_view_taxonomy_title .= '???';
-      return;
+      $title = '???';
     } else {
       $view->args[$i] = $tag_idx;
     }    
   }
+  
+  $view->view_taxonomy_title = $title;
 }
 
 function _view_taxonomy_get_index($name) {
@@ -80,8 +80,12 @@ function _view_taxonomy_get_index($name) {
 
 /**
  * Implements hook_views_pre_render().
+ * 
+ * If there is a title set in our new view variable, we set the title to this
+ * value.
  */
 function view_taxonomy_views_pre_render(&$view) {
-  global $_view_taxonomy_title;
-  $view->build_info['title'] = $_view_taxonomy_title;
+  if (isset($view->view_taxonomy_title)) {
+    $view->build_info['title'] = $view->view_taxonomy_title;
+  }
 }
